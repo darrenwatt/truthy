@@ -1,0 +1,9 @@
+beautifulsoup4>=4.12.0
+pymongo
+python-dotenv
+discord-webhook
+requests
+scrapeops-python-requests
+python-dateutil
+ratelimit
+backoff
