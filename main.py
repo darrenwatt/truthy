@@ -99,7 +99,7 @@ def mark_post_processed(collection, post):
         logger.error(f"Error marking post as processed: {e}")
         raise
 
-def send_to_discord(message):
+def send_to_discord(message, media_attachments=None):
     """Send a message to Discord with rate limiting and retries"""
     if not message:
         logger.warning("Empty message, skipping Discord notification")
@@ -113,6 +113,17 @@ def send_to_discord(message):
             rate_limit_retry=True,
             delay_between_retries=10  # Wait 10 seconds between retries
         )
+        
+        # Handle media attachments
+        if media_attachments:
+            for media in media_attachments:
+                if media.get('type') in ['image', 'video', 'gifv']:
+                    url = media.get('url') or media.get('preview_url')
+                    if url:
+                        content, filename = download_media(url)
+                        if content and filename:
+                            webhook.add_file(file=content, filename=filename)
+        
         response = rate_limited_discord_send(webhook)
         status_code = response.status_code
         
@@ -179,65 +190,55 @@ def format_discord_message(post):
         # Clean and format the content
         content = clean_html_and_format(content)
         
-        # Handle media attachments
-        media_attachments = post.get('media_attachments', [])
-        media_urls = []
-        media_descriptions = []
-        
-        for media in media_attachments:
-            if media.get('type') in ['image', 'video', 'gifv']:
-                url = media.get('url') or media.get('preview_url')
-                description = media.get('description', '').strip()
-                if url:
-                    media_urls.append(url)
-                    if description:
-                        media_descriptions.append(f"📝 {description}")
-        
         # Format message parts with exact newlines
-        header = f"**New Bullshit from {display_name} (@{username})**\n"
+        header = f"**New bullshit from {display_name} (@{username})**\n"
         footer = f"\n*Posted at: {created_at.strftime('%B %d, %Y at %I:%M %p %Z')}*"
-        media_header = "\n**Media Attachments:**\n" if media_urls else ""
         
-        # Calculate exact lengths including newlines
-        media_content_length = len(media_header)
-        for i, url in enumerate(media_urls):
-            media_content_length += len(url) + 1  # +1 for newline
-            if i < len(media_descriptions):
-                media_content_length += len(media_descriptions[i]) + 1  # +1 for newline
-        
-        # Calculate max content length with 50 char safety margin
-        max_content_length = 1950 - len(header) - len(footer) - media_content_length
+        # Calculate max content length with safety margin
+        max_content_length = 1950 - len(header) - len(footer)
         
         # Truncate content if necessary
         if len(content) > max_content_length:
-            truncated_length = max_content_length - 3  # -3 for "..."
+            truncated_length = max_content_length - 3
             content = content[:truncated_length] + "..."
         
-        # Build message with explicit newline control
-        message_parts = [header, content]
+        # Build final message without media URLs (they'll be embedded)
+        final_message = header + content + footer
         
-        # Add media URLs and descriptions
-        if media_urls:
-            message_parts.append(media_header.rstrip())
-            for i, url in enumerate(media_urls):
-                message_parts.append(url)
-                if i < len(media_descriptions):
-                    message_parts.append(media_descriptions[i])
-        
-        # Add timestamp
-        message_parts.append(footer)
-        
-        # Join with newlines and verify final length
-        final_message = "\n".join(message_parts)
+        # Final safety check
         if len(final_message) > 2000:
-            logger.warning(f"Message still too long ({len(final_message)} chars), applying emergency truncation")
+            logger.warning(f"Message too long ({len(final_message)} chars), applying emergency truncation")
             return final_message[:1997] + "..."
-            
+        
         return final_message
         
     except Exception as e:
         logger.error(f"Error formatting post: {e}")
         return None
+
+def download_media(url):
+    """Download media from URL and return the content and filename"""
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        # Get filename from URL or Content-Disposition header
+        filename = url.split('/')[-1].split('?')[0]  # Remove query parameters
+        content_type = response.headers.get('content-type', '').lower()
+        
+        # Ensure proper file extension based on content type
+        if 'image/jpeg' in content_type and not filename.lower().endswith(('.jpg', '.jpeg')):
+            filename += '.jpg'
+        elif 'image/png' in content_type and not filename.lower().endswith('.png'):
+            filename += '.png'
+        elif 'image/gif' in content_type and not filename.lower().endswith('.gif'):
+            filename += '.gif'
+        elif 'video/' in content_type and not filename.lower().endswith(('.mp4', '.mov', '.webm')):
+            filename += '.mp4'
+            
+        return response.content, filename
+    except Exception as e:
+        logger.error(f"Error downloading media from {url}: {e}")
+        return None, None
 
 def get_truth_social_posts():
     """Get posts from Truth Social using Mastodon API via ScrapeOps proxy"""
@@ -314,7 +315,8 @@ def main():
                 # Format and send to Discord
                 message = format_discord_message(post)
                 if message:
-                    send_to_discord(message)
+                    media_attachments = post.get('media_attachments', [])
+                    send_to_discord(message, media_attachments)
                     # Mark as processed only if successfully sent to Discord
                     mark_post_processed(mongo_collection, post)
                 
