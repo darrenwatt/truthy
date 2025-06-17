@@ -85,6 +85,7 @@ docker run -d --env-file .env truth-social-monitor
 |---------------------|-------------|---------|
 | LOG_LEVEL | Logging level (INFO, DEBUG, etc.) | INFO |
 | REPEAT_DELAY | Time between checks (seconds) | 300 |
+| POST_TYPE | Description of post shown in Discord messages | post |
 | DISCORD_NOTIFY | Enable Discord notifications | true |
 | DISCORD_USERNAME | Bot username in Discord | Truth Social Bot |
 | DISCORD_WEBHOOK_URL | Discord webhook URL | Required |
