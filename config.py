@@ -27,6 +27,7 @@ class Config(object):
     # Truth Social configuration
     TRUTH_USERNAME = os.getenv("TRUTH_USERNAME")
     TRUTH_INSTANCE = os.getenv("TRUTH_INSTANCE") or "truthsocial.com"
+    POST_TYPE = os.getenv("POST_TYPE") or "post"  # Default to "post" if not specified
     
     # Request configuration
     REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT") or 30)

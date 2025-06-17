@@ -191,7 +191,8 @@ def format_discord_message(post):
         content = clean_html_and_format(content)
         
         # Format message parts with exact newlines
-        header = f"**New bullshit from {display_name} (@{username})**\n"
+        post_type = config.POST_TYPE.capitalize()  # Ensure first letter is capitalized
+        header = f"**New {post_type} from {display_name} (@{username})**\n"
         footer = f"\n*Posted at: {created_at.strftime('%B %d, %Y at %I:%M %p %Z')}*"
         
         # Calculate max content length with safety margin
