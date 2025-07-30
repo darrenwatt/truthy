@@ -39,6 +39,10 @@ class Config(object):
     SCRAPEOPS_NUM_RETRIES = int(os.getenv("SCRAPEOPS_NUM_RETRIES") or 3)
     SCRAPEOPS_COUNTRY = os.getenv("SCRAPEOPS_COUNTRY") or "us"
 
+    # FlareSolverr configuration
+    FLARESOLVERR_ADDRESS = os.getenv("FLARESOLVERR_ADDRESS") or "localhost"
+    FLARESOLVERR_PORT = int(os.getenv("FLARESOLVERR_PORT") or 8191)
+
     def __init__(self):
         self.validate_config()
 

@@ -64,6 +64,10 @@ A Python application that monitors Truth Social posts from specified users and f
    SCRAPEOPS_API_KEY=your_api_key_here
    SCRAPEOPS_NUM_RETRIES=3
    SCRAPEOPS_COUNTRY=us
+
+   # FlareSolverr
+   FLARESOLVERR_ADDRESS=localhost
+   FLARESOLVERR_PORT=8191
    ```
 
 ## Usage
@@ -100,6 +104,8 @@ docker run -d --env-file .env truth-social-monitor
 | SCRAPEOPS_API_KEY | ScrapeOps API key | Required if enabled |
 | SCRAPEOPS_NUM_RETRIES | ScrapeOps max retries | 3 |
 | SCRAPEOPS_COUNTRY | ScrapeOps proxy country | us |
+| FLARESOLVERR_ADDRESS | FlareSolverr service address | localhost |
+| FLARESOLVERR_PORT | FlareSolverr service port | 8191 |
 
 ## Error Handling
 
