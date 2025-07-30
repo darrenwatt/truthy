@@ -65,23 +65,45 @@ def make_flaresolverr_request(url, headers=None, params=None):
         url = url + "?" + urlencode(params)
         payload["url"] = url
 
+    logger.info(f"Making FlareSolverr request: {url} (params={params})")
+
     try:
         resp = requests.post(flaresolverr_url, json=payload)
         resp.raise_for_status()
         result = resp.json()
         if result.get("status") != "ok":
+            logger.error(f"FlareSolverr error: {result}")
             raise Exception(f"FlareSolverr error: {result}")
+        response_content = result["solution"]["response"]
+        logger.debug(f"FlareSolverr raw response (first 500 chars): {response_content[:500]}")
         # Mimic a requests.Response object for .json() and .text
         class FakeResponse:
             def __init__(self, content):
                 self._content = content
             def json(self):
                 import json
-                return json.loads(self._content)
+                from bs4 import BeautifulSoup
+                # Try to parse as JSON directly
+                try:
+                    return json.loads(self._content)
+                except Exception:
+                    # Try to extract JSON from <pre>...</pre> in HTML
+                    soup = BeautifulSoup(self._content, "html.parser")
+                    pre = soup.find("pre")
+                    if pre:
+                        try:
+                            return json.loads(pre.text)
+                        except Exception as e:
+                            logger.error(f"Failed to parse JSON from <pre>: {e}")
+                            logger.error(f"<pre> content (first 500 chars): {pre.text[:500]}")
+                            raise
+                    logger.error("No <pre> tag found in FlareSolverr HTML response")
+                    logger.error(f"HTML content (first 500 chars): {self._content[:500]}")
+                    raise
             @property
             def text(self):
                 return self._content
-        return FakeResponse(result["solution"]["response"])
+        return FakeResponse(response_content)
     except Exception as e:
         logger.error(f"FlareSolverr request failed for {url}: {e}")
         raise
