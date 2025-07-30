@@ -61,6 +61,11 @@ A Python application that monitors Truth Social posts from specified users and f
 
 ## Usage
 
+Run flaresolverr locally with docker compose (supplied):
+```bash
+docker compose up -d
+```
+
 Run the monitor:
 ```bash
 python main.py
