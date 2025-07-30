@@ -120,6 +120,16 @@ def connect_mongodb():
         return collection
     except Exception as e:
         logger.error(f"Failed to connect to MongoDB: {e}")
+        # Check for SSL handshake/network policy errors
+        if (
+            "SSL handshake failed" in str(e)
+            or "tlsv1 alert internal error" in str(e)
+            or "TopologyDescription" in str(e)
+        ):
+            logger.error(
+                "MongoDB connection failed due to SSL/network error. "
+                "Reminder: Check your MongoDB Atlas Network Access Policy, firewall, and IP whitelist settings."
+            )
         raise
 
 def is_post_processed(collection, post_id):
@@ -176,6 +186,7 @@ def send_to_discord(message, media_attachments=None):
                         if content and filename:
                             webhook.add_file(file=content, filename=filename)
         
+        logger.info("Sending Discord webhook...")
         response = rate_limited_discord_send(webhook)
         status_code = response.status_code
         
@@ -342,8 +353,21 @@ def main():
     logger.info("Starting Truth Social monitor...")
     
     # Connect to MongoDB
-    mongo_collection = connect_mongodb()
-    
+    try:
+        mongo_collection = connect_mongodb()
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB in main: {e}")
+        if (
+            "SSL handshake failed" in str(e)
+            or "tlsv1 alert internal error" in str(e)
+            or "TopologyDescription" in str(e)
+        ):
+            logger.error(
+                "MongoDB connection failed due to SSL/network error. "
+                "Reminder: Check your MongoDB Atlas Network Access Policy, firewall, and IP whitelist settings."
+            )
+        raise
+
     while True:
         try:
             # Get posts
@@ -373,6 +397,16 @@ def main():
                 
         except Exception as e:
             logger.error(f"Error in main loop: {e}")
+            # Add network policy reminder here too
+            if (
+                "SSL handshake failed" in str(e)
+                or "tlsv1 alert internal error" in str(e)
+                or "TopologyDescription" in str(e)
+            ):
+                logger.error(
+                    "MongoDB connection failed due to SSL/network error. "
+                    "Reminder: Check your MongoDB Atlas Network Access Policy, firewall, and IP whitelist settings."
+                )
         
         delay = int(config.REPEAT_DELAY)
         logger.info(f"Waiting {delay} seconds before next check...")
