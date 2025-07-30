@@ -49,6 +49,45 @@ def make_request(url, headers):
         raise
 
 
+
+def make_flaresolverr_request(url, headers=None, params=None):
+    """Use FlareSolverr to fetch a URL and return a response-like object."""
+    flaresolverr_url = "http://localhost:8191/v1"
+    payload = {
+        "cmd": "request.get",
+        "url": url,
+        "maxTimeout": 25000,
+    }
+    if headers:
+        payload["headers"] = headers
+    if params:
+        from urllib.parse import urlencode
+        url = url + "?" + urlencode(params)
+        payload["url"] = url
+
+    try:
+        resp = requests.post(flaresolverr_url, json=payload)
+        resp.raise_for_status()
+        result = resp.json()
+        if result.get("status") != "ok":
+            raise Exception(f"FlareSolverr error: {result}")
+        # Mimic a requests.Response object for .json() and .text
+        class FakeResponse:
+            def __init__(self, content):
+                self._content = content
+            def json(self):
+                import json
+                return json.loads(self._content)
+            @property
+            def text(self):
+                return self._content
+        return FakeResponse(result["solution"]["response"])
+    except Exception as e:
+        logger.error(f"FlareSolverr request failed for {url}: {e}")
+        raise
+
+
+
 def connect_mongodb():
     """Connect to MongoDB and return the collection"""
     try:
@@ -247,7 +286,7 @@ def get_truth_social_posts():
         # First get the user ID
         lookup_url = f'https://{config.TRUTH_INSTANCE}/api/v1/accounts/lookup?acct={config.TRUTH_USERNAME}'
         
-        response = make_request(lookup_url, headers)
+        response = make_flaresolverr_request(lookup_url, headers)
         user_data = response.json()
         
         if not user_data or 'id' not in user_data:
@@ -264,7 +303,7 @@ def get_truth_social_posts():
             'limit': '40'
         }
         
-        response = make_request(posts_url, params=params, headers=headers)
+        response = make_flaresolverr_request(posts_url, params=params, headers=headers)
         posts = response.json()
         
         if not isinstance(posts, list):
