@@ -33,12 +33,6 @@ class Config(object):
     REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT") or 30)
     MAX_RETRIES = int(os.getenv("MAX_RETRIES") or 3)
 
-    # ScrapeOps configuration
-    SCRAPEOPS_API_KEY = os.getenv("SCRAPEOPS_API_KEY")
-    SCRAPEOPS_ENABLED = os.getenv("SCRAPEOPS_ENABLED", "True").lower() == "true"
-    SCRAPEOPS_NUM_RETRIES = int(os.getenv("SCRAPEOPS_NUM_RETRIES") or 3)
-    SCRAPEOPS_COUNTRY = os.getenv("SCRAPEOPS_COUNTRY") or "us"
-
     def __init__(self):
         self.validate_config()
 
@@ -55,9 +49,6 @@ class Config(object):
 
         if not self.MONGO_DBSTRING:
             errors.append("MONGO_DBSTRING is required")
-
-        if self.SCRAPEOPS_ENABLED and not self.SCRAPEOPS_API_KEY:
-            errors.append("SCRAPEOPS_API_KEY is required when SCRAPEOPS_ENABLED is true")
 
         if errors:
             raise ConfigValidationError("\n".join(errors))

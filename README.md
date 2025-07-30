@@ -8,7 +8,6 @@ A Python application that monitors Truth Social posts from specified users and f
 - Forwards posts to Discord via webhooks
 - Stores processed posts in MongoDB to avoid duplicates
 - Supports media attachments (images, videos, GIFs)
-- Uses ScrapeOps proxy service for reliable scraping
 - Rate limiting for Discord notifications
 - Automatic retries for failed requests
 - Comprehensive error handling and logging
@@ -18,7 +17,7 @@ A Python application that monitors Truth Social posts from specified users and f
 - Python 3.8 or higher
 - MongoDB instance
 - Discord webhook URL
-- ScrapeOps API key (optional but recommended)
+- Flaresolverr to run requests through
 
 ## Installation
 
@@ -58,12 +57,6 @@ A Python application that monitors Truth Social posts from specified users and f
    # Request Settings
    REQUEST_TIMEOUT=30
    MAX_RETRIES=3
-
-   # ScrapeOps (optional but recommended)
-   SCRAPEOPS_ENABLED=true
-   SCRAPEOPS_API_KEY=your_api_key_here
-   SCRAPEOPS_NUM_RETRIES=3
-   SCRAPEOPS_COUNTRY=us
    ```
 
 ## Usage
@@ -96,10 +89,6 @@ docker run -d --env-file .env truth-social-monitor
 | TRUTH_INSTANCE | Truth Social instance domain | truthsocial.com |
 | REQUEST_TIMEOUT | Request timeout in seconds | 30 |
 | MAX_RETRIES | Max retries for failed requests | 3 |
-| SCRAPEOPS_ENABLED | Use ScrapeOps proxy | true |
-| SCRAPEOPS_API_KEY | ScrapeOps API key | Required if enabled |
-| SCRAPEOPS_NUM_RETRIES | ScrapeOps max retries | 3 |
-| SCRAPEOPS_COUNTRY | ScrapeOps proxy country | us |
 
 ## Error Handling
 
