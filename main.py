@@ -52,7 +52,7 @@ def make_request(url, headers):
 
 def make_flaresolverr_request(url, headers=None, params=None):
     """Use FlareSolverr to fetch a URL and return a response-like object."""
-    flaresolverr_url = "http://localhost:8191/v1"
+    flaresolverr_url = f"http://{config.FLARESOLVERR_ADDRESS}:{config.FLARESOLVERR_PORT}/v1"
     payload = {
         "cmd": "request.get",
         "url": url,

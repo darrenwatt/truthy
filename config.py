@@ -33,6 +33,11 @@ class Config(object):
     REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT") or 30)
     MAX_RETRIES = int(os.getenv("MAX_RETRIES") or 3)
 
+    # FlareSolverr configuration
+    FLARESOLVERR_ADDRESS = os.getenv("FLARESOLVERR_ADDRESS") or "localhost"
+    FLARESOLVERR_PORT = int(os.getenv("FLARESOLVERR_PORT") or 8191)
+
+
     def __init__(self):
         self.validate_config()
 

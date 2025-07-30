@@ -57,6 +57,10 @@ A Python application that monitors Truth Social posts from specified users and f
    # Request Settings
    REQUEST_TIMEOUT=30
    MAX_RETRIES=3
+
+   # Flaresolverr
+   FLARESOLVERR_ADDRESS=localhost
+   FLARESOLVERR_PORT=8191
    ```
 
 ## Usage
@@ -106,6 +110,8 @@ All configuration is handled via environment variables, typically set in a `.env
 | `POST_TYPE`            | Type of posts to monitor                                         | `post`                         |
 | `REQUEST_TIMEOUT`      | HTTP request timeout (seconds)                                   | `30`                           |
 | `MAX_RETRIES`          | Max HTTP request retries                                         | `3`                            |
+| `FLARESOLVERR_ADDRESS` | Flaresolverr server address                                     | `localhost`                   |
+| `FLARESOLVERR_PORT`    | Flaresolverr server port                                        | `8191`                        |
 
 ### Example `.env` file
 
@@ -129,6 +135,9 @@ POST_TYPE=post
 
 REQUEST_TIMEOUT=30
 MAX_RETRIES=3
+
+FLARESOLVERR_ADDRESS=localhost
+FLARESOLVERR_PORT=8191
 ```
 
 ### Validation
