@@ -34,7 +34,7 @@ def rate_limited_discord_send(webhook):
 @backoff.on_exception(
     backoff.expo,
     (requests.exceptions.RequestException, requests.exceptions.HTTPError),
-    max_tries=config.SCRAPEOPS_NUM_RETRIES
+    max_tries=config.MAX_RETRIES
 )
 def make_request(url, headers):
     """Make HTTP request with retry mechanism"""
@@ -48,15 +48,6 @@ def make_request(url, headers):
         logger.error(f"Response body: {e.response.text[:500]}")  # First 500 chars of error response
         raise
 
-def get_scrapeops_url(url):
-    """Get ScrapeOps proxy URL"""
-    payload = {
-        'api_key': config.SCRAPEOPS_API_KEY,
-        'url': url,
-        'country': config.SCRAPEOPS_COUNTRY,
-    }
-    proxy_url = 'https://proxy.scrapeops.io/v1/?' + urlencode(payload)
-    return proxy_url
 
 def connect_mongodb():
     """Connect to MongoDB and return the collection"""
@@ -255,9 +246,8 @@ def get_truth_social_posts():
 
         # First get the user ID
         lookup_url = f'https://{config.TRUTH_INSTANCE}/api/v1/accounts/lookup?acct={config.TRUTH_USERNAME}'
-        proxy_url = get_scrapeops_url(lookup_url)
         
-        response = make_request(proxy_url, headers)
+        response = make_request(lookup_url, headers)
         user_data = response.json()
         
         if not user_data or 'id' not in user_data:
@@ -273,9 +263,8 @@ def get_truth_social_posts():
             'exclude_reblogs': 'true',
             'limit': '40'
         }
-        proxy_url = get_scrapeops_url(f"{posts_url}?{urlencode(params)}")
         
-        response = make_request(proxy_url, headers)
+        response = make_request(posts_url, params=params, headers=headers)
         posts = response.json()
         
         if not isinstance(posts, list):
